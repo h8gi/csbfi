@@ -14,7 +14,7 @@
 (define bf-out (make-parameter #\.))
 (define bf-lb (make-parameter #\[))
 (define bf-rb (make-parameter #\]))
-
+(define *default-str* "+-><,.[]")
 (define (set-tokens! str)
   (assert (= 8 (string-length str)) "string length != 8" str)
   (map (lambda (p x) (p x))
@@ -22,7 +22,7 @@
        (string->list str)))
 
 
-(define (initialize #!optional (str "+-><,.[]"))
+(define (initialize str)
   (set! *pointer* 0)
   (set! *array* (make-vector *array-length* 0))
   (set-tokens! str)
@@ -45,7 +45,7 @@
                                             ((read-while)) ; 2重
                                             ))))))
 
-(define (bf-read #!optional (str "+-><,.[]"))
+(define (bf-read #!optional (str *default-str*))
   (initialize str)
   (let loop ([ch (read-char)])
     (unless (eof-object? ch)
