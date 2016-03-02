@@ -10,12 +10,10 @@ a brainfuck interpreter
 `csbfi -h`でヘルプが出ます。オプションのパースが雑です。
 
 ~~~~~
-
 csbfi - chicken scheme brainfuck interpreter
 Usage: csbfi [options] [file]
     -h              show this message
-    -s string       set tokens (string length must be 8)
-
+    -s string       set tokens (default:"+-><,.[]", length must be 8)
 ~~~~~
 
 sオプションに文字列を渡すことでトークンを指定できます。デフォルトは"+-><,.[]"です。
