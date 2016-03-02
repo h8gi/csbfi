@@ -10,14 +10,15 @@ END
 
 )
 
-((rec (main args)
-      (match args
-        [() (bf-read)]
-        [("-h" . rest) (display usage)]
-        [("-s" str filename) (with-input-from-file filename
-                               (bf-read str))]
-        [("-s" str) (bf-read str)]
-        [(filename) (with-input-from-file filename
-                      bf-read)]
-        [else (display usage)]))
- (command-line-arguments))
+(match (command-line-arguments)
+  [() (bf-read)]
+  [("-h" . rest) (display usage)]
+  [("-s" str filename)
+   (with-input-from-file filename
+     (lambda () (bf-read str)))]
+  [("-s" str)
+   (bf-read str)]
+  [(filename) (with-input-from-file filename
+                bf-read)]
+  [else (display usage)])
+
