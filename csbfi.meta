@@ -2,4 +2,5 @@
 ((author "yagihiroki")
  (synopsis "csbfi")
  (license "MIT license http://opensource.org/licenses/mit-license.php")
- (files "main.scm" "csbfi.scm" "csbfi.setup" "csbfi.meta"))
+ (depends miscmacros matchable)
+ (files "main.scm" "csbfi.scm" "csbfi.setup" "csbfi.meta" "csbfi-cmd.scm"))
