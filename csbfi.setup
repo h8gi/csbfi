@@ -4,8 +4,15 @@
 (compile -s -O3 -d1 "csbfi.scm" -j csbfi)
 (compile -s -O3 -d0 "csbfi.import.scm")
 
+(compile -o csbfi -O2 -d1 "csbfi-cmd.scm")
+
 ;;; インストール
 (install-extension
  'csbfi
  '("csbfi.so" "csbfi.import.so")
+ '((version 1.0)))
+
+(install-program
+ 'csbfi-cmd
+ '("csbfi")
  '((version 1.0)))
