@@ -1,4 +1,7 @@
-(use srfi-69 (only miscmacros push! pop! inc! dec!))
+(use srfi-69
+     (only miscmacros push! pop! inc! dec!)
+     (prefix utf8 utf8:))
+;; string-length, string->list, read-char, display
 (define *array-length* 30000)
 (define *array* (make-vector *array-length* 0))
 (define *pointer* 0)
