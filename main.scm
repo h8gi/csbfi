@@ -75,16 +75,6 @@
           [(eq? (car lst) #\[) (cons acc (cdr lst))]
           [else (loop (cdr lst) (cons (car lst) acc))])))
 (define (bf-process-string str)
-  (string-for-each process-char str))
-
-(define (bf-read-file file)
-  (initialize)
-  (bf-process-string
-   (with-input-from-file file
-     read-all)))
-
-(define (bf-repl)
-  (display "fuck> ")
-  (bf-process-string (read-line))
-  (bf-repl))
+  (string-for-each process-char str)
+  (flush-output))
 

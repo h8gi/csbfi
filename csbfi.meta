@@ -2,5 +2,5 @@
 ((author "yagihiroki")
  (synopsis "csbfi")
  (license "MIT license http://opensource.org/licenses/mit-license.php")
- (depends miscmacros matchable)
+ (depends matchable linenoise)
  (files "main.scm" "csbfi.scm" "csbfi.setup" "csbfi.meta" "csbfi-cmd.scm"))
