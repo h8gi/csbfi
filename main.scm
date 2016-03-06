@@ -1,7 +1,7 @@
-(use srfi-69
-     (only miscmacros push! inc! dec!)
-     (only utils read-all)
+(use (only utils read-all)
      (only srfi-1 reverse!)
+     (only srfi-13 string-for-each)
+     (only extras read-line)
      (prefix utf8 utf8:))
 ;; string-length, string->list, read-char, display
 (define *tape-length* 30000)
@@ -16,13 +16,14 @@
   (set! *while-count* 0)
   (set! *pointer 0)
   (vector-fill! *tape* 0))
+
 ;;; cとして渡されるのは char か *while-stack*
 (define (do-ops c)
   (case c
-    [(#\+) (inc! (vector-ref *tape* *pointer*))]
-    [(#\-) (dec! (vector-ref *tape* *pointer*))]
-    [(#\>) (inc! *pointer*)]
-    [(#\<) (dec! *pointer*)]
+    [(#\+) (vector-set! *tape* *pointer* (fx+ (vector-ref *tape* *pointer*) 1))]
+    [(#\-) (vector-set! *tape* *pointer* (fx- (vector-ref *tape* *pointer*) 1))]
+    [(#\>) (set! *pointer* (fx+ *pointer* 1))]
+    [(#\<) (set! *pointer* (fx- *pointer* 1))]
     [(#\,) (vector-set! *tape* *pointer* (char->integer (read-char)))]
     [(#\.) (display (integer->char (vector-ref *tape* *pointer*)))]
     [else (when (list? c)
@@ -38,7 +39,7 @@
    [(zero? *while-count*)                 ; whileの外にいるとき
     (case c
       [(#\[)                            ; 最外のwhileスタート 
-       (inc! *while-count*)]            ; このときは push しない
+       (set! *while-count* (fx+ *while-count* 1))] ; このときは push しない
       [(#\])
        (void)]
       [(#\+ #\- #\> #\< #\, #\.)
@@ -46,15 +47,15 @@
    [(stop?) ; whileしない
     (set! *while-stack* '())
     (case c
-      [(#\]) (dec! *while-count*)]
-      [(#\[) (inc! *while-count*)])]
+      [(#\]) (set! *while-count* (fx- *while-count* 1))]
+      [(#\[) (set! *while-count* (fx+ *while-count* 1))])]
    [else                                ; whileの中にあって、(stop?)しない状態
     (case c
       [(#\[)
-       (inc! *while-count*)
-       (push! c *while-stack*)]
+       (set! *while-count* (fx+ *while-count* 1))
+       (set! *while-stack* (cons c *while-stack*))]
       [(#\])
-       (dec! *while-count*)
+       (set! *while-count* (fx- *while-count* 1))
        (cond [(zero? *while-count*)   ; whileから抜けた?
               (set! *while-stack* (reverse! *while-stack*))
               (do-while *while-stack*)
@@ -64,7 +65,7 @@
              [else (set! *while-stack* '())] ; while ] の 打ちすぎ(このエッジケースはあり得るか?)
              )]
       [(#\+ #\- #\> #\< #\, #\.)
-       (push! c *while-stack*)])]))
+       (set! *while-stack* (cons c *while-stack*))])]))
 
 ;;; state machine として
 (define (pack-while while-stack)
@@ -73,10 +74,17 @@
     (cond [(null? lst) #f]
           [(eq? (car lst) #\[) (cons acc (cdr lst))]
           [else (loop (cdr lst) (cons (car lst) acc))])))
-(define (process-string str)
-  (for-each process-char (string->list str)))
+(define (bf-process-string str)
+  (string-for-each process-char str))
+
 (define (bf-read-file file)
   (initialize)
-  (process-string
+  (bf-process-string
    (with-input-from-file file
      read-all)))
+
+(define (bf-repl)
+  (display "fuck> ")
+  (bf-process-string (read-line))
+  (bf-repl))
+

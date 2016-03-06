@@ -1,19 +1,21 @@
 (use csbfi matchable srfi-1 srfi-69)
 
-(define usage #<<END
+
+(define (usage) (display #<<END
 csbfi - chicken scheme brainfuck interpreter
 Usage: csbfi [options] [file]
-    -h              show this message    
-    -s string       set tokens (default:"+-><,.[]", length must be 8)
+    -h              show this message        
+    -e <string>     eval string
 
 END
 
-)
+))
 
 (match (command-line-arguments)
-  [() (bf-read)]
-  [("-h" . rest) (display usage)]
-  [(filename) (with-input-from-file filename
-                bf-read)]
-  [else (display usage)])
+  [() (bf-repl)]
+  [("-h" . rest)
+   (usage)]
+  [("-e" str . rest) (bf-process-string str)]
+  [(filename) (bf-read-file filename)]
+  [else (usage)])
 
