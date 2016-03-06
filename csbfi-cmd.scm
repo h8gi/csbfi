@@ -13,11 +13,6 @@ END
 (match (command-line-arguments)
   [() (bf-read)]
   [("-h" . rest) (display usage)]
-  [("-s" str filename)
-   (with-input-from-file filename
-     (lambda () (bf-read str)))]
-  [("-s" str)
-   (bf-read str)]
   [(filename) (with-input-from-file filename
                 bf-read)]
   [else (display usage)])
