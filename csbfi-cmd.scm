@@ -1,4 +1,4 @@
-(use csbfi matchable linenoise
+(use csbfi matchable linenoise irregex
      (only data-structures conc))
 
 (define (bf-read-file file)
@@ -37,6 +37,10 @@ END
 
 ))
 
+(define (contain? l char)
+  (irregex-match `(: (* space) ,char (or (: (+ space) (* any))
+                                         eol))  l))
+
 (define (bf-repl)
   (initialize)
   (set-history-length! 300)
@@ -44,16 +48,17 @@ END
   (repl-hello)
   (let loop ([l (linenoise "> ")])
     (cond
-     [(equal? l "q")
-      (save-history-to-file ".brainfuck_history") (display "BYE!\n")]
-     [(equal? l "?")
-      (repl-help)
-      (newline)
-      (loop (linenoise (conc (make-string *while-count* #\[) "> ")))]
-     [else (bf-process-string l)
-           (history-add l)
-           (newline)
-           (loop (linenoise (conc (make-string *while-count* #\[) "> ")))])))
+     [(contain? l #\q)
+      (save-history-to-file ".brainfuck_history")
+      (display "BYE!\n")
+      (exit)]
+     [(contain? l #\?)
+      (repl-help)]
+     [else
+      (bf-process-string l)
+      (history-add l)])
+    (newline)
+    (loop (linenoise (conc (make-string *while-count* #\[) "> ")))))
 
 (define (usage) (display #<<END
 csbfi - chicken scheme brainfuck interpreter

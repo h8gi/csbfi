@@ -2,7 +2,8 @@
      (only srfi-1 reverse!)
      (only srfi-13 string-for-each)
      (only extras read-line)
-     (prefix utf8 utf8:))
+     (prefix utf8 utf8:)
+     irregex)
 ;; string-length, string->list, read-char, display
 (define *tape-length* 30000)
 (define *tape* (make-vector *tape-length* 0))
@@ -26,8 +27,7 @@
     [(#\<) (set! *pointer* (fx- *pointer* 1))]
     [(#\,) (vector-set! *tape* *pointer* (char->integer (read-char)))]
     [(#\.) (display (integer->char (vector-ref *tape* *pointer*)))]
-    [else (when (list? c)
-            (do-while c))]))
+    [else (do-while c)]))
 
 (define (do-while w-stk)
   (unless (or (stop?) (null? w-stk))
@@ -42,7 +42,7 @@
        (set! *while-count* (fx+ *while-count* 1))] ; このときは push しない
       [(#\])
        (void)]
-      [(#\+ #\- #\> #\< #\, #\.)
+      [else
        (do-ops c)])]
    [(stop?) ; whileしない
     (set! *while-stack* '())
@@ -64,17 +64,16 @@
               (set! *while-stack* (pack-while *while-stack*))]
              [else (set! *while-stack* '())] ; while ] の 打ちすぎ(このエッジケースはあり得るか?)
              )]
-      [(#\+ #\- #\> #\< #\, #\.)
+      [else
        (set! *while-stack* (cons c *while-stack*))])]))
 
-;;; state machine として
 (define (pack-while while-stack)
   (let loop ([lst while-stack]
              [acc '()])
     (cond [(null? lst) #f]
           [(eq? (car lst) #\[) (cons acc (cdr lst))]
           [else (loop (cdr lst) (cons (car lst) acc))])))
-(define (bf-process-string str)
-  (string-for-each process-char str)
-  (flush-output))
 
+(define (bf-process-string str)
+  (string-for-each process-char (irregex-replace/all "[^+-><,.\\[\\]]" str ""))
+  (flush-output))
