@@ -6,11 +6,13 @@
   (bf-process-string
    (with-input-from-file file
      read-all)))
+
 (define (repl-help)
   (display #<<END
 
 ?       Show this help
-q       quit repl
+q       Quit repl
+d       Dump memory
 >       Increment the data pointer
 <       Decrement the data pointer
 +       Increment the byte at the data pointer
@@ -26,6 +28,7 @@ END
 
 ))
 
+
 (define (repl-hello)
   (display #<<END
 CHICKEN SCHEME BRAINFUCK INTERPRETER
@@ -40,7 +43,6 @@ END
 (define (contain? l char)
   (irregex-match `(: (* space) ,char (or (: (+ space) (* any))
                                          eol))  l))
-
 (define (bf-repl)
   (initialize)
   (set-history-length! 300)
@@ -54,6 +56,8 @@ END
       (exit)]
      [(contain? l #\?)
       (repl-help)]
+     [(contain? l #\d)
+      (dump-tape 0 *tape-length*)]
      [else
       (bf-process-string l)
       (history-add l)])

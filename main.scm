@@ -1,8 +1,6 @@
-(use (only utils read-all)
+ (use (only utils read-all)
      (only srfi-1 reverse!)
      (only srfi-13 string-for-each)
-     (only extras read-line)
-     (prefix utf8 utf8:)
      irregex)
 ;; string-length, string->list, read-char, display
 (define *tape-length* 30000)
@@ -18,6 +16,14 @@
   (set! *pointer 0)
   (vector-fill! *tape* 0))
 
+(define *op-table*
+  `([#\+ . ,(lambda () (vector-set! *tape* *pointer* (fx+ (vector-ref *tape* *pointer*) 1)))]
+    [#\- . ,(lambda () (vector-set! *tape* *pointer* (fx- (vector-ref *tape* *pointer*) 1)))]
+    [#\> . ,(lambda () (set! *pointer* (fx+ *pointer* 1)))]
+    [#\< . ,(lambda () (set! *pointer* (fx- *pointer* 1)))]
+    [#\, . ,(lambda () (vector-set! *tape* *pointer* (char->integer (read-char))))]
+    [#\. . ,(lambda () (display (integer->char (vector-ref *tape* *pointer*))))]))
+
 ;;; cとして渡されるのは char か *while-stack*
 (define (do-ops c)
   (case c
@@ -26,13 +32,14 @@
     [(#\>) (set! *pointer* (fx+ *pointer* 1))]
     [(#\<) (set! *pointer* (fx- *pointer* 1))]
     [(#\,) (vector-set! *tape* *pointer* (char->integer (read-char)))]
-    [(#\.) (display (integer->char (vector-ref *tape* *pointer*)))]
-    [else (do-while c)]))
+    [(#\.) (display (integer->char (vector-ref *tape* *pointer*)))]))
 
 (define (do-while w-stk)
-  (unless (or (stop?) (null? w-stk))
-    (for-each do-ops w-stk)
-    (do-while w-stk)))
+  (unless (null? w-stk)
+    (let loop ()
+      (unless (stop?)
+        (for-each (cut <>) w-stk)
+        (loop)))))
 
 (define (process-char c)
   (cond
@@ -65,15 +72,28 @@
              [else (set! *while-stack* '())] ; while ] の 打ちすぎ(このエッジケースはあり得るか?)
              )]
       [else
-       (set! *while-stack* (cons c *while-stack*))])]))
-
+       (set! *while-stack* (cons (cdr (assoc c *op-table*))
+                                 *while-stack*))])]))
 (define (pack-while while-stack)
   (let loop ([lst while-stack]
              [acc '()])
     (cond [(null? lst) #f]
-          [(eq? (car lst) #\[) (cons acc (cdr lst))]
+          [(eq? (car lst) #\[)  (cons (lambda () (do-while acc))
+                                      (cdr lst))]
           [else (loop (cdr lst) (cons (car lst) acc))])))
 
 (define (bf-process-string str)
   (string-for-each process-char (irregex-replace/all "[^+-><,.\\[\\]]" str ""))
+  (flush-output))
+
+(define (dump-tape start end)
+  (when (<= 0 start end *tape-length*)
+    (do ([i start (add1 i)]
+         [c 1 (add1 c)])
+        ((>= i end))
+      (display (vector-ref *tape* i))
+      (display " ")
+      (when (zero? (modulo c 50))
+        (newline))))
+  (newline)
   (flush-output))
