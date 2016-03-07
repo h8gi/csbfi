@@ -1,11 +1,6 @@
 (use csbfi matchable linenoise irregex
      (only data-structures conc))
 
-(define (bf-read-file file)
-  (initialize)
-  (bf-process-string
-   (with-input-from-file file
-     read-all)))
 
 (define (repl-help)
   (display #<<END
