@@ -35,35 +35,32 @@
 (define (process-token tkn)
   (cond
    [(fx= 0 *while-count*)               ; whileの外にいるとき
-    (case tkn
-      [(open)                            ; 最外のwhileスタート 
-       (set! *while-count* (fx+ *while-count* 1))] ; このときは push しない
-      [(close)
-       (void)]
-      [else
-       (tkn)])]
+    (cond  [(eq? tkn 'open)              ; 最外のwhileスタート 
+            (set! *while-count* (fx+ *while-count* 1))] ; このときは push しない
+           [(eq? tkn 'close)
+            (void)]
+           [else
+            (tkn)])]
    [(fx= 0 (vector-ref *tape* *pointer*)) ;while しない
     (set! *while-stack* '())
-    (case tkn
-      [(close) (set! *while-count* (fx- *while-count* 1))]
-      [(open)  (set! *while-count* (fx+ *while-count* 1))])]
-   [else                        ; whileの中にあって、(stop?)しない状態
-    (case tkn
-      [(open)
-       (set! *while-count* (fx+ *while-count* 1))
-       (set! *while-stack* (cons tkn *while-stack*))]
-      [(close)
-       (set! *while-count* (fx- *while-count* 1))
-       (cond [(fx= 0 *while-count*)     ; whileから抜けた?
-              (set! *while-stack* (reverse! *while-stack*))
-              (do-while *while-stack*)
-              (set! *while-stack* '())]
-             [(> *while-count* 0)
-              (set! *while-stack* (pack-while *while-stack*))]
-             [else (set! *while-stack* '())] ; while ] の 打ちすぎ(このエッジケースはあり得るか?)
-             )]
-      [else
-       (set! *while-stack* (cons tkn *while-stack*))])]))
+    (cond [(eq? tkn 'close) (set! *while-count* (fx- *while-count* 1))]
+          [(eq? tkn 'open)  (set! *while-count* (fx+ *while-count* 1))])]
+   ;; whileの中にあって、stop しない状態
+   [(eq? tkn 'open)   
+    (set! *while-count* (fx+ *while-count* 1))
+    (set! *while-stack* (cons tkn *while-stack*))]
+   [(eq? tkn 'close)
+    (set! *while-count* (fx- *while-count* 1))
+    (cond [(fx= 0 *while-count*)        ; whileから抜けた?
+           (set! *while-stack* (reverse! *while-stack*))
+           (do-while *while-stack*)
+           (set! *while-stack* '())]
+          [(> *while-count* 0)          ; whileの中
+           (set! *while-stack* (pack-while *while-stack*))]
+          [else (set! *while-stack* '())] ; while ] の 打ちすぎ(このエッジケースはあり得るか?)
+          )]
+   [else
+    (set! *while-stack* (cons tkn *while-stack*))]))
 
 (define (do-while w-stk)
   (unless (null? w-stk)
