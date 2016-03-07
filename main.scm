@@ -103,4 +103,5 @@
   (newline)
   (flush-output))
 
+;; (bf-read-file "test/bench.bf")
 
