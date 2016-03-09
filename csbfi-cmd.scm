@@ -64,19 +64,24 @@ csbfi - chicken scheme brainfuck interpreter
 Usage: csbfi [options] [file]
     -h              show this message        
     -e <string>     eval string
-    -n              no optimization
+    -o              optimize (maybe become slower. you shoudn't use this option.)
+
 END
 
 ))
 
-(define (main args)
-  (match args
-    [() (bf-repl)]
-    [("-h" . rest)
-     (usage)]
-    [("-e" str . rest) (bf-process-string str)]
-    [("-n" . rest) (bf-opt #f) (main rest)]
-    [(filename . rest) (bf-read-file filename)]
-    [else (usage)]))
+(define (main args #!optional (filename #f))
+  (if filename
+      (match args        
+        [("-o" . rest) (bf-opt) (main rest filename)]
+        [else (bf-read-file filename)])
+      (match args
+        [() (bf-repl)]
+        [("-h" . rest)
+         (usage)]
+        [("-e" str . rest) (bf-process-string str)]
+        [("-o" . rest) (bf-opt #t) (main rest)]
+        [(filename . rest) (main rest filename)]
+        [else (usage)])))
 
 (main (command-line-arguments))

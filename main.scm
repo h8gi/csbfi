@@ -11,14 +11,18 @@
 (define *pointer* 0)
 (define *while-stack* '())
 (define *while-count* 0)
+(define pack-while #f)
 (define (initialize)
   (set! *while-stack* '())
   (set! *while-count* 0)
   (set! *pointer* 0)
   (vector-fill! *tape* 0)
-  (set! *counter* 0))
+  (set! *counter* 0)
+  (if (bf-opt)
+      (set! pack-while pack-while-opt)
+      (set! pack-while pack-while-no-opt)))
 (define bf-debug (make-parameter #t))
-(define bf-opt (make-parameter #t))
+(define bf-opt (make-parameter #f))
 (define *counter* 0)
 (define (count-op op)
   (set! *counter* (add1 *counter*)))
@@ -63,10 +67,10 @@
      [(eq? tkn 'close)
       (set! *while-count* (fx- *while-count* 1))
       (cond [(fx= 0 *while-count*)      ; whileから抜けた?
-             ((if (bf-opt) pack-while-opt pack-while) *while-stack*)
+             (pack-while *while-stack*)
              (set! *while-stack* '())]
             [(> *while-count* 0)        ; whileの中
-             (set! *while-stack* ((if (bf-opt) pack-while-opt pack-while) *while-stack*))]
+             (set! *while-stack* (pack-while *while-stack*))]
             [else (set! *while-stack* '())] ; while ] の 打ちすぎ(このエッジケースはあり得るか?)
             )]
      [else                              ; とりあえず
@@ -80,7 +84,7 @@
         (loop)))))
 ;;;  TODO: FIXME
 ;;; あとは最適化をかけるだけ…
-(define (pack-while while-stack)
+(define (pack-while-no-opt while-stack)
   (let loop ([lst while-stack]
              [acc '()])
     (if (null? lst)
@@ -106,10 +110,11 @@
           (let ([tkn  (caar lst)]
                 [proc (cdar lst)])
             (cond [(eq? tkn 'open)                   
-                   (cons `(while . ,(lambda ()
-                                      (if (and (fx= *pointer* pos) (fx= -1 (pos-ref pos-table pos len)))
-                                          (pos-for-each pos-table len)                       
-                                          (exec-while acc))))
+                   (cons `(while .
+                            ,(lambda ()
+                               (if (and (fx= *pointer* pos) (fx= -1 (pos-ref pos-table pos len)))
+                                   (pos-for-each pos-table len)                       
+                                   (exec-while acc))))
                          (cdr lst))]
                   [(eq? tkn '+)
                    (pos-inc! pos-table pos len)
@@ -120,7 +125,9 @@
                   ;; うそだろ
                   [(eq? tkn '>) (set! pos (fx- pos 1)) (loop (cdr lst) (cons proc acc))] ;逆をやる必要がある
                   [(eq? tkn '<) (set! pos (fx+ pos 1)) (loop (cdr lst) (cons proc acc))]
-                  [else (pack-while while-stack)]))))))
+                  [(eq? tkn 'while)     ; whileコード…
+                   (loop (cdr lst) (cons proc acc))]
+                  [else (pack-while-no-opt while-stack)]))))))
 
 (define (make-pos-table len)
   (make-vector (fx+ 1 (fx* 2 len)) 0))
@@ -173,8 +180,3 @@
         (newline))))
   (newline)
   (flush-output))
-
-(bf-opt #f)
-(bf-read-file "test/man.bf")
-
-
