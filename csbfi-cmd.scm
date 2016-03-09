@@ -64,7 +64,7 @@ csbfi - chicken scheme brainfuck interpreter
 Usage: csbfi [options] [file]
     -h              show this message        
     -e <string>     eval string
-
+    -n              no optimization
 END
 
 ))
@@ -75,7 +75,8 @@ END
     [("-h" . rest)
      (usage)]
     [("-e" str . rest) (bf-process-string str)]
-    [(filename) (bf-read-file filename)]
+    [("-n" . rest) (bf-opt #f) (main rest)]
+    [(filename . rest) (bf-read-file filename)]
     [else (usage)]))
 
 (main (command-line-arguments))
