@@ -27,12 +27,12 @@
 (define (count-op op)
   (set! *counter* (add1 *counter*)))
 (define *op-table*
-  `([#\+ +   . ,(lambda () (vector-set! *tape* *pointer* (fx+ (vector-ref *tape* *pointer*) 1)))]
-    [#\- -   . ,(lambda () (vector-set! *tape* *pointer* (fx- (vector-ref *tape* *pointer*) 1)))]
-    [#\> >   . ,(lambda () (set! *pointer* (fx+ *pointer* 1)))]
-    [#\< <   . ,(lambda () (set! *pointer* (fx- *pointer* 1)))]
-    [#\, in  . ,(lambda () (vector-set! *tape* *pointer* (char->integer (read-char))))]
-    [#\. out . ,(lambda () (display (integer->char (vector-ref *tape* *pointer*))))]
+  `([#\+ +   . ,(lambda ()    (vector-set! *tape* *pointer* (fx+ (vector-ref *tape* *pointer*) 1)))]
+    [#\- -   . ,(lambda ()    (vector-set! *tape* *pointer* (fx- (vector-ref *tape* *pointer*) 1)))]
+    [#\> >   . ,(lambda ()    (set! *pointer* (fx+ *pointer* 1)))]
+    [#\< <   . ,(lambda ()    (set! *pointer* (fx- *pointer* 1)))]
+    [#\, in  . ,(lambda ()   (vector-set! *tape* *pointer* (char->integer (read-char))))]
+    [#\. out . ,(lambda ()  (display (integer->char (vector-ref *tape* *pointer*))))]
     [#\[ open ]
     [#\] close]))
 
